@@ -1,299 +1,271 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { ArrowRight, Code, Zap, Shield } from "lucide-react";
+import React, { useRef } from "react";
+import dynamic from "next/dynamic";
+import { ArrowRight, Brain, Cpu, BarChart3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { gsap, useGSAP } from "@/lib/gsap";
+
+const ParticleCanvas = dynamic(() => import("./ParticleCanvas"), {
+  ssr: false,
+});
 
 const HeroSection = () => {
   const { t } = useTranslation();
+  const stageRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      // Desktop, motion allowed: pinned cinematic scrub + intro choreography
+      mm.add(
+        "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+        () => {
+          // Intro (plays once on mount)
+          gsap
+            .timeline({ defaults: { ease: "power3.out" } })
+            .from(".hero-label-line", {
+              scaleX: 0,
+              transformOrigin: "left center",
+              duration: 0.8,
+              delay: 0.3,
+            })
+            .from(".hero-label-text", { opacity: 0, x: -12, duration: 0.7 }, "-=0.5")
+            .from(
+              ".hero-line",
+              { yPercent: 110, duration: 1.2, stagger: 0.14, ease: "power4.out" },
+              "-=0.4"
+            )
+            .from(".hero-desc", { y: 24, opacity: 0, duration: 0.8 }, "-=0.6")
+            .from(
+              ".hero-cta",
+              { y: 16, opacity: 0, duration: 0.6, stagger: 0.1 },
+              "-=0.5"
+            )
+            .from(".hero-meta", { opacity: 0, y: 12, duration: 0.8 }, "-=0.3");
+
+          // Scroll scrub: subtle camera drift on the baobab image — forward on
+          // scroll down, backward on scroll up (scrub is bidirectional).
+          // ponytail: image drift stands in for a real video; swap the <img>
+          // for a scrubbed <video> when Higgsfield credits allow.
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: stageRef.current,
+              start: "top top",
+              end: "+=180%",
+              pin: true,
+              scrub: 1,
+            },
+            defaults: { ease: "none" },
+          });
+          tl.to(imgRef.current, { scale: 1.18, yPercent: -4, duration: 10 }, 0)
+            .to(".hero-glow", { opacity: 0.45, duration: 10 }, 0)
+            .to(headRef.current, { yPercent: -18, opacity: 0, duration: 3.5 }, 2.5)
+            .to(".hero-meta", { opacity: 0, duration: 2 }, 2.5)
+            // autoAlpha (not opacity): visibility:hidden while invisible, so
+            // the absolutely-positioned strip can't swallow clicks meant for
+            // the CTA buttons underneath it.
+            .fromTo(
+              ".hero-stat",
+              { y: 40, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: 2, stagger: 0.3 },
+              5
+            )
+            .fromTo(
+              ".hero-cards-wrap",
+              { autoAlpha: 0 },
+              { autoAlpha: 1, duration: 1.5 },
+              5.8
+            )
+            .fromTo(
+              ".hero-card",
+              { y: 60, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: 2.5, stagger: 0.4 },
+              6
+            );
+        }
+      );
+
+      // Mobile, motion allowed: no pin, simple reveals, gentle drift on image
+      mm.add(
+        "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
+        () => {
+          gsap
+            .timeline({ defaults: { ease: "power3.out" } })
+            .from(".hero-label-text", { opacity: 0, x: -12, duration: 0.6, delay: 0.2 })
+            .from(".hero-line", { yPercent: 110, duration: 0.9, stagger: 0.12 }, "-=0.3")
+            .from(".hero-desc", { y: 20, opacity: 0, duration: 0.7 }, "-=0.4")
+            .from(".hero-cta", { y: 15, opacity: 0, duration: 0.5, stagger: 0.1 }, "-=0.3");
+
+          gsap.to(imgRef.current, {
+            scale: 1.12,
+            ease: "none",
+            scrollTrigger: {
+              trigger: stageRef.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: 1,
+            },
+          });
+        }
+      );
+      // prefers-reduced-motion: no context added — everything stays static.
+    },
+    { scope: stageRef }
+  );
 
   const scrollToContact = () => {
-    const element = document.querySelector("#contact");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const scrollToServices = () => {
-    const element = document.querySelector("#services");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    document.querySelector("#services")?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const cards = [
+    { icon: Brain, title: t("hero.card1Title"), desc: t("hero.card1Desc") },
+    { icon: Cpu, title: t("hero.card2Title"), desc: t("hero.card2Desc") },
+    { icon: BarChart3, title: t("hero.card3Title"), desc: t("hero.card3Desc") },
+  ];
+
+  const stats = [
+    { value: t("hero.stat1Value"), label: t("hero.stat1Label") },
+    { value: t("hero.stat2Value"), label: t("hero.stat2Label") },
+    { value: t("hero.stat3Value"), label: t("hero.stat3Label") },
+  ];
+
   return (
-    <section id="home" className="min-h-screen relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0">
-        {/* Base gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"></div>
-
-        {/* Moving gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-oet-blue-600/30 via-oet-teal-500/20 to-oet-green-500/30 animate-pulse"></div>
-
-        {/* Animated geometric shapes */}
-        <div className="absolute inset-0">
-          {/* Large floating circles */}
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-oet-blue-500/10 rounded-full animate-float-slow"></div>
-          <div className="absolute top-3/4 right-1/4 w-48 h-48 bg-oet-teal-500/10 rounded-full animate-float-medium"></div>
-          <div className="absolute top-1/2 left-3/4 w-32 h-32 bg-oet-green-500/10 rounded-full animate-float-fast"></div>
-
-          {/* Floating particles */}
-          <div className="absolute top-1/3 left-1/6 w-4 h-4 bg-oet-blue-400/60 rounded-full animate-particle-1"></div>
-          <div className="absolute top-2/3 left-1/3 w-3 h-3 bg-oet-teal-400/60 rounded-full animate-particle-2"></div>
-          <div className="absolute top-1/4 right-1/3 w-5 h-5 bg-oet-green-400/60 rounded-full animate-particle-3"></div>
-          <div className="absolute top-3/4 right-1/6 w-2 h-2 bg-oet-blue-300/60 rounded-full animate-particle-4"></div>
-          <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-oet-teal-300/60 rounded-full animate-particle-5"></div>
-
-          {/* Geometric lines */}
-          <div className="absolute top-0 left-0 w-full h-full">
-            <svg className="w-full h-full opacity-20" viewBox="0 0 1000 1000">
-              <defs>
-                <linearGradient
-                  id="lineGradient"
-                  x1="0%"
-                  y1="0%"
-                  x2="100%"
-                  y2="100%"
-                >
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                  <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.3" />
-                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M0,200 Q250,100 500,200 T1000,200"
-                stroke="url(#lineGradient)"
-                strokeWidth="2"
-                fill="none"
-                className="animate-draw-line"
-              />
-              <path
-                d="M0,400 Q250,300 500,400 T1000,400"
-                stroke="url(#lineGradient)"
-                strokeWidth="2"
-                fill="none"
-                className="animate-draw-line-delayed"
-              />
-              <path
-                d="M0,600 Q250,500 500,600 T1000,600"
-                stroke="url(#lineGradient)"
-                strokeWidth="2"
-                fill="none"
-                className="animate-draw-line-delayed-2"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
-        <div className="min-h-screen flex items-center">
-          <div className="grid lg:grid-cols-2 gap-12 items-center w-full">
-            {/* Text Content */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-white"
-            >
-              <motion.h2
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-                className="text-4xl md:text-6xl font-bold mb-6 leading-tight"
-                suppressHydrationWarning={true}
-              >
-                {t("hero.title")}{" "}
-                <span
-                  className="bg-gradient-oet bg-clip-text text-transparent"
-                  suppressHydrationWarning={true}
-                >
-                  {t("hero.titleHighlight")}
-                </span>
-              </motion.h2>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.8 }}
-                className="text-xl text-gray-300 mb-8 leading-relaxed"
-                suppressHydrationWarning={true}
-              >
-                {t("hero.description")}
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.0 }}
-                className="flex flex-col sm:flex-row gap-4 mb-12"
-              >
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={scrollToContact}
-                  className="group bg-gradient-oet text-white px-8 py-4 rounded-full font-semibold hover:shadow-2xl transition-all flex items-center justify-center space-x-2"
-                >
-                  <span>{t("hero.ctaProject")}</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={scrollToServices}
-                  className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-gray-900 transition-all"
-                >
-                  {t("hero.ctaServices")}
-                </motion.button>
-              </motion.div>
-
-              {/* Key Features */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 1.2 }}
-                className="grid grid-cols-1 sm:grid-cols-3 gap-6"
-              >
-                <div className="flex items-center space-x-3">
-                  <Code className="w-8 h-8 text-oet-green-400" />
-                  <div>
-                    <h3 className="font-semibold">{t("hero.featureDev")}</h3>
-                    <p className="text-sm text-gray-300">
-                      {t("hero.featureDevDesc")}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Zap className="w-8 h-8 text-oet-teal-400" />
-                  <div>
-                    <h3 className="font-semibold">
-                      {t("hero.featureInnovation")}
-                    </h3>
-                    <p className="text-sm text-gray-300">
-                      {t("hero.featureInnovationDesc")}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-8 h-8 text-oet-blue-400" />
-                  <div>
-                    <h3 className="font-semibold">
-                      {t("hero.featureSecurity")}
-                    </h3>
-                    <p className="text-sm text-gray-300">
-                      {t("hero.featureSecurityDesc")}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-
-            {/* Right Side - Technology Image with Floating Elements */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="hidden lg:block relative"
-            >
-              <div className="relative">
-                {/* Background Technology Image */}
-                <div className="relative w-full h-[600px] rounded-3xl overflow-hidden">
-                  <img
-                    src="/OnonoTech.png"
-                    alt="Technology in Africa - Angola"
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute inset-0 bg-gradient-oet/20"></div>
-                </div>
-
-                {/* Floating Cards */}
-                <motion.div
-                  animate={{ y: [0, -20, 0] }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                  className="absolute top-20 left-10 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
-                >
-                  <Code className="w-12 h-12 text-oet-green-400 mb-4" />
-                  <h3 className="text-white font-semibold mb-2">
-                    {t("hero.floatingCard1Title")}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {t("hero.floatingCard1Desc")}
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [0, 20, 0] }}
-                  transition={{
-                    duration: 6,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 2,
-                  }}
-                  className="absolute top-64 right-10 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
-                >
-                  <Shield className="w-12 h-12 text-oet-blue-400 mb-4" />
-                  <h3 className="text-white font-semibold mb-2">
-                    {t("hero.floatingCard2Title")}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {t("hero.floatingCard2Desc")}
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1,
-                  }}
-                  className="absolute top-44 right-40 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
-                >
-                  <Zap className="w-12 h-12 text-oet-teal-400 mb-4" />
-                  <h3 className="text-white font-semibold mb-2">
-                    {t("hero.floatingCard3Title")}
-                  </h3>
-                  <p className="text-gray-300 text-sm">
-                    {t("hero.floatingCard3Desc")}
-                  </p>
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
+    <section id="home" className="relative">
+      <div
+        ref={stageRef}
+        className="relative min-h-screen md:h-screen overflow-hidden flex flex-col bg-[#050607]"
       >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="w-6 h-10 border-2 border-white rounded-full flex justify-center"
-        >
-          <motion.div
-            animate={{ y: [0, 16, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-1 h-3 bg-white rounded-full mt-2"
+        {/* Cinematic layer: baobab + Africa circuit map, heavily subdued */}
+        <div className="absolute inset-0">
+          <img
+            ref={imgRef}
+            src="/hero-poster.jpg"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover opacity-70 will-change-transform"
           />
-        </motion.div>
-      </motion.div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#050607]/70 via-[#050607]/25 to-[#050607]" />
+          <div className="hero-glow absolute inset-0 opacity-0 bg-onono-cyan-500/10 mix-blend-screen pointer-events-none" />
+        </div>
+
+        <ParticleCanvas />
+
+        {/* Content */}
+        <div className="relative z-10 flex-1 flex flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 md:pb-0 w-full">
+          <div ref={headRef} className="max-w-4xl">
+            <div className="flex items-center gap-4 mb-6">
+              <span className="hero-label-line block w-12 h-px bg-[#c9a876]" />
+              <span className="hero-label-text text-[11px] md:text-xs uppercase tracking-[0.35em] text-[#c9a876]">
+                {t("hero.badge")}
+              </span>
+            </div>
+
+            <h1 className="font-serif text-[clamp(2.75rem,7vw,7.5rem)] text-white leading-[1.05] mb-6">
+              <span className="block overflow-hidden pb-2">
+                <span className="hero-line block font-medium">
+                  {t("hero.title")}
+                </span>
+              </span>
+              <span className="block overflow-hidden pb-2">
+                <span className="hero-line block italic text-[#d8b98a]">
+                  {t("hero.titleLine2")}
+                </span>
+              </span>
+            </h1>
+
+            <p className="hero-desc text-base md:text-lg text-gray-400 leading-relaxed max-w-xl mb-8">
+              {t("hero.description")}
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={scrollToContact}
+                className="hero-cta btn-glow group text-onono-midnight-900 font-bold hover:scale-105 active:scale-95 transition-transform"
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {t("hero.ctaPrimary")}
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </button>
+              <button
+                onClick={scrollToServices}
+                className="hero-cta btn-outline-glow hover:scale-105 active:scale-95 transition-transform"
+              >
+                {t("hero.ctaSecondary")}
+              </button>
+            </div>
+          </div>
+
+          {/* Editorial strip: stats + capability cards (revealed by scroll on desktop) */}
+          <div
+            ref={stripRef}
+            className="pointer-events-none mt-16 md:mt-0 md:absolute md:bottom-24 md:left-4 md:right-4 lg:left-8 lg:right-8"
+          >
+            <div className="grid grid-cols-3 gap-6 max-w-lg mb-10">
+              {stats.map((stat, i) => (
+                <div key={i} className="hero-stat">
+                  <div className="font-serif text-3xl md:text-4xl text-[#d8b98a]">
+                    {stat.value}
+                  </div>
+                  <div className="text-[11px] md:text-xs text-gray-500 uppercase tracking-[0.2em] mt-1">
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hero-cards-wrap grid md:grid-cols-3 gap-px bg-white/10 border border-white/10">
+              {cards.map((card, i) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={i}
+                    className="hero-card pointer-events-auto flex items-start gap-4 p-6 bg-[#0a0c0e] hover:bg-[#101316] transition-colors"
+                  >
+                    <Icon className="w-5 h-5 shrink-0 mt-1 text-[#c9a876]" />
+                    <div>
+                      <h3 className="text-white text-sm font-semibold tracking-wide mb-1">
+                        {card.title}
+                      </h3>
+                      <p className="text-gray-500 text-sm leading-relaxed">
+                        {card.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom metadata row (reference-style editorial footer of the hero) */}
+        <div className="hero-meta relative z-10 hidden md:block absolute bottom-0 left-0 right-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+            <div className="border-t border-white/10 pt-4 flex items-end justify-between text-xs text-gray-500">
+              <div>
+                <div className="text-gray-300">Luanda, Angola</div>
+                <div>8.84° S, 13.23° E</div>
+              </div>
+              <div className="text-center">
+                <div className="text-gray-300">Onono</div>
+                <div>{t("footer.tagline")}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-gray-300">Scroll</div>
+                <div className="animate-bounce">↓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

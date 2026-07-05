@@ -1,272 +1,349 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef, useState, useEffect } from "react";
+import React, { useRef } from "react";
 import {
-  Code,
-  Cloud,
-  Shield,
-  Network,
-  Smartphone,
-  Database,
+  Brain,
+  Code2,
+  Workflow,
+  BarChart3,
+  FolderKanban,
+  GraduationCap,
   ArrowRight,
-  CheckCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 const ServicesSection = () => {
   const { t } = useTranslation();
-  const ref = useRef(null);
-  const [fallbackVisible, setFallbackVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  // Fallback for when framer-motion fails
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setFallbackVisible(true);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
 
-  // Always call useInView hook
-  const isInView =
-    useInView(ref, { once: true, amount: 0.1 }) || fallbackVisible;
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // immediateRender: false on every triggered from() — otherwise a late
+        // ScrollTrigger.refresh (font/image load) reverts elements to the
+        // cached hidden from-state and they stay invisible.
+        const ir = { immediateRender: false };
+
+        // Header: masked line reveal
+        gsap
+          .timeline({
+            defaults: { ease: "power3.out" },
+            scrollTrigger: { trigger: ".services-header", start: "top 78%" },
+          })
+          .from(".services-label", { y: 20, opacity: 0, duration: 0.6, ...ir })
+          .from(
+            ".services-line",
+            { yPercent: 110, duration: 1, stagger: 0.12, ease: "power4.out", ...ir },
+            "-=0.3"
+          )
+          .from(".services-desc", { y: 30, opacity: 0, duration: 0.8, ...ir }, "-=0.5");
+
+        // Cards reveal (single stagger — batch proved fragile mid-tween)
+        gsap.from(".service-card", {
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power3.out",
+          ...ir,
+          scrollTrigger: { trigger: ".services-grid", start: "top 85%" },
+        });
+
+        // Subtle alternating parallax by column for depth (desktop only).
+        // yPercent, not y — the reveal above owns y and they must not fight.
+        if (window.innerWidth >= 1024) {
+          gsap.utils.toArray<HTMLElement>(".service-card").forEach((card, i) => {
+            gsap.to(card, {
+              yPercent: i % 3 === 1 ? -3 : 2,
+              ease: "none",
+              scrollTrigger: {
+                trigger: card,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1,
+              },
+            });
+          });
+        }
+
+        // Bottom CTA reveal
+        gsap.from(".services-cta", {
+          y: 50,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          ...ir,
+          scrollTrigger: { trigger: ".services-cta", start: "top 85%" },
+        });
+
+        // Glow blobs parallax
+        gsap.to(".services-blob-1", {
+          yPercent: -15,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+        gsap.to(".services-blob-2", {
+          yPercent: 15,
+          ease: "none",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: 1,
+          },
+        });
+      });
+    },
+    { scope: sectionRef }
+  );
 
   const services = [
     {
-      icon: Code,
+      icon: Brain,
       title: t("services.service1Title"),
       description: t("services.service1Desc"),
-      image: "/images/service-dev.jpg",
       features: [
         t("services.service1Feature1"),
         t("services.service1Feature2"),
         t("services.service1Feature3"),
         t("services.service1Feature4"),
       ],
-      technologies: ["Python", "TensorFlow", "PyTorch", "Scikit-learn"],
+      technologies: ["Python", "TensorFlow", "PyTorch", "OpenAI"],
+      gradient: "from-onono-cyan-500 to-onono-electric-500",
+      glowColor: "rgba(0, 212, 255, 0.3)",
     },
     {
-      icon: Cloud,
+      icon: Code2,
       title: t("services.service2Title"),
       description: t("services.service2Desc"),
-      image: "/images/service-cloud.jpg",
       features: [
         t("services.service2Feature1"),
         t("services.service2Feature2"),
         t("services.service2Feature3"),
         t("services.service2Feature4"),
       ],
-      technologies: ["React", "Node.js", "Angular", ".NET Core", "Flutter"],
+      technologies: ["React", "Node.js", "Flutter", ".NET"],
+      gradient: "from-onono-electric-500 to-onono-green-500",
+      glowColor: "rgba(59, 130, 246, 0.3)",
     },
     {
-      icon: Network,
+      icon: Workflow,
       title: t("services.service3Title"),
       description: t("services.service3Desc"),
-      image: "/images/service-integration.png",
       features: [
         t("services.service3Feature1"),
         t("services.service3Feature2"),
         t("services.service3Feature3"),
         t("services.service3Feature4"),
       ],
-      technologies: ["BPMN", "RPA", "Cloud Computing", "Sistemas Integrados"],
+      technologies: ["BPMN", "RPA", "Cloud", "APIs"],
+      gradient: "from-onono-green-500 to-onono-cyan-500",
+      glowColor: "rgba(46, 204, 64, 0.3)",
     },
     {
-      icon: Shield,
+      icon: BarChart3,
       title: t("services.service4Title"),
       description: t("services.service4Desc"),
-      image: "/images/service-security.png",
       features: [
         t("services.service4Feature1"),
         t("services.service4Feature2"),
         t("services.service4Feature3"),
         t("services.service4Feature4"),
       ],
-      technologies: ["Power BI", "Tableau", "SQL", "Python (Pandas)"],
+      technologies: ["Power BI", "Tableau", "SQL", "Python"],
+      gradient: "from-onono-cyan-500 to-onono-green-500",
+      glowColor: "rgba(0, 212, 255, 0.3)",
     },
     {
-      icon: Smartphone,
+      icon: FolderKanban,
       title: t("services.service5Title"),
       description: t("services.service5Desc"),
-      image: "/images/team-1.jpg",
       features: [
         t("services.service5Feature1"),
         t("services.service5Feature2"),
         t("services.service5Feature3"),
         t("services.service5Feature4"),
       ],
-      technologies: ["Jira", "Trello", "Asana", "MS Project"],
+      technologies: ["Jira", "Scrum", "Kanban", "Agile"],
+      gradient: "from-onono-electric-500 to-onono-cyan-500",
+      glowColor: "rgba(59, 130, 246, 0.3)",
     },
     {
-      icon: Database,
+      icon: GraduationCap,
       title: t("services.service6Title"),
       description: t("services.service6Desc"),
-      image: "/images/team-2.jpg",
       features: [
         t("services.service6Feature1"),
         t("services.service6Feature2"),
         t("services.service6Feature3"),
         t("services.service6Feature4"),
       ],
-      technologies: [
-        "Workshops Técnicos",
-        "Certificações",
-        "Mentoria",
-        "Programas de Capacitação",
-      ],
+      technologies: ["Workshops", "Certificações", "Mentoria", "E-Learning"],
+      gradient: "from-onono-green-500 to-onono-electric-500",
+      glowColor: "rgba(46, 204, 64, 0.3)",
     },
   ];
 
   return (
     <section
       id="services"
-      className="py-12 sm:py-16 lg:py-20 bg-slate-50"
-      ref={ref}
-      style={{ minHeight: "50vh", display: "block" }}
+      className="py-32 lg:py-40 relative overflow-hidden"
+      ref={sectionRef}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-onono-midnight-950 via-onono-midnight-900 to-onono-midnight-950">
+        <div className="absolute inset-0 grid-pattern opacity-20" />
+        {/* Glow effects */}
+        <div className="services-blob-1 absolute top-1/4 right-0 w-[600px] h-[600px] bg-onono-cyan-500/5 rounded-full blur-[150px]" />
+        <div className="services-blob-2 absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-onono-green-500/5 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-8 sm:mb-12 lg:mb-16"
-        >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
-            {t("services.title")}{" "}
-            <span className="bg-gradient-oet bg-clip-text text-transparent">
-              {t("services.titleHighlight")}
+        <div className="services-header text-center mb-20">
+          <div className="services-label text-xs uppercase tracking-[0.35em] text-[#c9a876] mb-4">
+            02 — {t("services.badge")}
+          </div>
+
+          <h2 className="font-serif text-[clamp(2.25rem,5vw,5rem)] mb-6 leading-[1.1]">
+            <span className="block overflow-hidden pb-1">
+              <span className="services-line block text-white font-medium">
+                {t("services.title")}
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-1">
+              <span className="services-line block italic text-[#d8b98a]">
+                {t("services.titleHighlight")}
+              </span>
             </span>
           </h2>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed px-2">
+
+          <p className="services-desc text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
             {t("services.description")}
           </p>
-        </motion.div>
+        </div>
 
         {/* Services Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+        <div className="services-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service, index) => {
             const Icon = service.icon;
-            const isEven = index % 2 === 0;
 
             return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: isEven ? -50 : 50 }}
-                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 1, x: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.1 }}
-                className="group"
-              >
-                <div className="bg-white rounded-3xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-                  {/* Service Image */}
-                  <div className="relative h-40 sm:h-48 overflow-hidden">
-                    <img
-                      src={service.image}
-                      alt={service.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-oet opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                    <div className="absolute top-4 left-4">
-                      <div className="w-12 h-12 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-oet-green-600" />
-                      </div>
+              <div key={index} className="service-card group">
+                <div
+                  className="glass-card-hover h-full p-8 relative"
+                  style={
+                    {
+                      "--glow-color": service.glowColor,
+                    } as React.CSSProperties
+                  }
+                >
+                  {/* Hover Glow Effect */}
+                  <div
+                    className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    style={{
+                      background: `radial-gradient(circle at center, ${service.glowColor} 0%, transparent 70%)`,
+                    }}
+                  />
+
+                  {/* Icon */}
+                  <div
+                    className={`w-14 h-14 rounded-xl bg-gradient-to-br ${service.gradient} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+                  >
+                    <Icon className="w-7 h-7 text-white" />
+                  </div>
+
+                  {/* Title & Description */}
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-onono-cyan-300 transition-colors">
+                    {service.title}
+                  </h3>
+                  <p className="text-gray-400 mb-6 leading-relaxed">
+                    {service.description}
+                  </p>
+
+                  {/* Features */}
+                  <div className="mb-6">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                      {t("services.keyFeatures")}
+                    </h4>
+                    <ul className="space-y-2">
+                      {service.features.map((feature, featureIndex) => (
+                        <li
+                          key={featureIndex}
+                          className="flex items-center gap-2 text-sm text-gray-300"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-onono-cyan-500 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Technologies */}
+                  <div className="mb-6">
+                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                      {t("services.technologies")}
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {service.technologies.map((tech, techIndex) => (
+                        <span
+                          key={techIndex}
+                          className="px-3 py-1 text-xs font-medium rounded-full bg-white/5 text-gray-300 border border-white/10"
+                        >
+                          {tech}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Service Content */}
-                  <div className="p-4 sm:p-6 lg:p-8">
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4 group-hover:text-oet-green-600 transition-colors">
-                      {service.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 leading-relaxed">
-                      {service.description}
-                    </p>
-
-                    {/* Features */}
-                    <div className="mb-4 sm:mb-6">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
-                        {t("services.keyFeatures")}
-                      </h4>
-                      <div className="space-y-2">
-                        {service.features.map((feature, featureIndex) => (
-                          <div
-                            key={featureIndex}
-                            className="flex items-center space-x-2"
-                          >
-                            <CheckCircle className="w-4 h-4 text-oet-green-500" />
-                            <span className="text-sm text-gray-600">
-                              {feature}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Technologies */}
-                    <div className="mb-4 sm:mb-6">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">
-                        {t("services.technologies")}
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {service.technologies.map((tech, techIndex) => (
-                          <span
-                            key={techIndex}
-                            className="px-3 py-1 bg-gradient-to-r from-oet-green-100 to-oet-teal-100 text-oet-green-700 rounded-full text-xs font-medium"
-                          >
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CTA Button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="group/btn w-full bg-gradient-oet text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center justify-center space-x-2"
-                    >
-                      <span>{t("services.learnMore")}</span>
-                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                    </motion.button>
-                  </div>
+                  {/* CTA Button */}
+                  <button className="w-full py-3 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-white/5 text-white border border-white/10 hover:bg-white/10 hover:border-onono-cyan-500/50 hover:scale-[1.02] active:scale-[0.98] group/btn">
+                    <span>{t("services.learnMore")}</span>
+                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </button>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
 
         {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="text-center mt-8 sm:mt-12 lg:mt-16"
-        >
-          <div className="bg-gradient-oet rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-white">
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-              {t("services.ctaTitle")}
-            </h3>
-            <p className="text-lg sm:text-xl mb-6 sm:mb-8 opacity-90">
-              {t("services.ctaDescription")}
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                const element = document.querySelector("#contact");
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth" });
-                }
-              }}
-              className="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold hover:shadow-xl transition-all inline-flex items-center space-x-2"
-            >
-              <span>{t("services.ctaButton")}</span>
-              <ArrowRight className="w-5 h-5" />
-            </motion.button>
+        <div className="services-cta mt-24">
+          <div className="glass-card p-12 text-center relative overflow-hidden">
+            {/* Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-onono-cyan-500/10 via-onono-electric-500/10 to-onono-green-500/10" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-onono-cyan-500/20 rounded-full blur-[100px]" />
+
+            <div className="relative z-10">
+              <h3 className="font-serif text-3xl md:text-4xl text-white mb-4">
+                {t("services.ctaTitle")}
+              </h3>
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                {t("services.ctaDescription")}
+              </p>
+              <button
+                onClick={() => {
+                  document
+                    .querySelector("#contact")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="btn-glow text-onono-midnight-900 font-bold inline-flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform"
+              >
+                <span>{t("services.ctaButton")}</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

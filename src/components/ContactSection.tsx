@@ -1,25 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
-import { useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   Mail,
   Phone,
   MapPin,
   Clock,
   Send,
-  CheckCircle,
-  MessageCircle,
-  Building,
+  CheckCircle2,
+  MessageSquare,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { gsap, useGSAP } from "@/lib/gsap";
+import { api } from "@/lib/api";
 
 const ContactSection = () => {
   const { t } = useTranslation();
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
+  const sectionRef = useRef<HTMLElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -30,14 +27,73 @@ const ContactSection = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        // immediateRender: false on every triggered from() — otherwise a late
+        // ScrollTrigger.refresh (font/image load) reverts elements to the
+        // cached hidden from-state and they stay invisible.
+        const ir = { immediateRender: false };
+
+        // Header: masked line reveal
+        gsap
+          .timeline({
+            defaults: { ease: "power3.out" },
+            scrollTrigger: { trigger: ".contact-header", start: "top 78%" },
+          })
+          .from(".contact-label", { y: 20, opacity: 0, duration: 0.6, ...ir })
+          .from(
+            ".contact-line",
+            { yPercent: 110, duration: 1, stagger: 0.12, ease: "power4.out", ...ir },
+            "-=0.3"
+          )
+          .from(".contact-desc", { y: 30, opacity: 0, duration: 0.8, ...ir }, "-=0.5");
+
+        // Info column: staggered items
+        gsap.from(".contact-info-item", {
+          y: 30,
+          opacity: 0,
+          duration: 0.7,
+          stagger: 0.1,
+          ease: "power3.out",
+          ...ir,
+          scrollTrigger: { trigger: ".contact-info-col", start: "top 80%" },
+        });
+
+        // Form: drift in from the right, fields rise
+        gsap.from(".contact-form-col", {
+          x: 40,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+          ...ir,
+          scrollTrigger: { trigger: ".contact-form-col", start: "top 80%" },
+        });
+        gsap.from(".contact-field", {
+          y: 20,
+          opacity: 0,
+          duration: 0.6,
+          stagger: 0.06,
+          ease: "power3.out",
+          ...ir,
+          scrollTrigger: { trigger: ".contact-form-col", start: "top 75%" },
+        });
+      });
+    },
+    { scope: sectionRef }
+  );
 
   const contactInfo = [
     {
       icon: Mail,
       title: t("contact.infoEmailTitle"),
-      content: "customer@onono-technologies.com",
+      content: "administrative@onono-technologies.com",
       subtitle: t("contact.infoEmailSubtitle"),
-      action: "mailto:customer@onono-technologies.com",
+      action: "mailto:administrative@onono-technologies.com",
     },
     {
       icon: Phone,
@@ -49,7 +105,7 @@ const ContactSection = () => {
     {
       icon: MapPin,
       title: t("contact.infoLocationTitle"),
-      content: "Rua Eduardo Mondlane Ingombotas Luanda Angola",
+      content: "Rua Eduardo Mondlane, Ingombotas, Luanda",
       subtitle: t("contact.infoLocationSubtitle"),
       action: "https://maps.google.com",
     },
@@ -87,163 +143,169 @@ const ContactSection = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError("");
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-
-    // Reset form after success
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({
-        name: "",
-        email: "",
-        company: "",
-        phone: "",
-        service: "",
-        message: "",
+    try {
+      await api("/messages", {
+        method: "POST",
+        body: JSON.stringify(formData),
       });
-    }, 3000);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({
+          name: "",
+          email: "",
+          company: "",
+          phone: "",
+          service: "",
+          message: "",
+        });
+      }, 3000);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <section id="contact" className="py-20 bg-white" ref={ref}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="contact"
+      className="py-32 lg:py-40 relative overflow-hidden"
+      ref={sectionRef}
+    >
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-onono-midnight-950 via-onono-midnight-900 to-onono-midnight-950">
+        <div className="absolute inset-0 grid-pattern opacity-20" />
+        {/* Glow effects */}
+        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-onono-cyan-500/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-onono-green-500/5 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            {t("contact.title")}{" "}
-            <span className="bg-gradient-oet bg-clip-text text-transparent">
-              {t("contact.titleHighlight")}
+        <div className="contact-header text-center mb-20">
+          <div className="contact-label text-xs uppercase tracking-[0.35em] text-[#c9a876] mb-4">
+            03 — {t("contact.title")}
+          </div>
+
+          <h2 className="font-serif text-[clamp(2.25rem,5vw,5rem)] mb-6 leading-[1.1]">
+            <span className="block overflow-hidden pb-1">
+              <span className="contact-line block text-white font-medium">
+                {t("contact.title")}
+              </span>
+            </span>
+            <span className="block overflow-hidden pb-1">
+              <span className="contact-line block italic text-[#d8b98a]">
+                {t("contact.titleHighlight")}
+              </span>
             </span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+
+          <p className="contact-desc text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
             {t("contact.description")}
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid lg:grid-cols-2 gap-16">
+        <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="space-y-8"
-          >
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-6">
+          <div className="contact-info-col space-y-8">
+            <div className="contact-info-item">
+              <h3 className="text-2xl font-bold text-white mb-4 font-display">
                 {t("contact.infoTitle")}
               </h3>
-              <p className="text-gray-600 leading-relaxed mb-8">
+              <p className="text-gray-400 leading-relaxed">
                 {t("contact.infoDescription")}
               </p>
             </div>
 
             {/* Contact Info Cards */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {contactInfo.map((info, index) => {
                 const Icon = info.icon;
                 return (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={isInView ? { opacity: 1, y: 0 } : {}}
-                    transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                    className="group"
-                  >
+                  <div key={index} className="contact-info-item group">
                     <div
-                      className="flex items-start space-x-4 p-6 bg-gray-50 rounded-2xl hover:bg-white hover:shadow-lg transition-all cursor-pointer"
+                      className="glass-card-hover p-5 flex items-start gap-4 cursor-pointer"
                       onClick={() =>
                         info.action && window.open(info.action, "_blank")
                       }
                     >
-                      <div className="w-12 h-12 bg-gradient-oet rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Icon className="w-6 h-6 text-white" />
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-onono-cyan-500/20 to-onono-electric-500/20 flex items-center justify-center group-hover:from-onono-cyan-500/30 group-hover:to-onono-electric-500/30 transition-all">
+                        <Icon className="w-5 h-5 text-onono-cyan-400" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                        <h4 className="text-white font-semibold mb-1">
                           {info.title}
                         </h4>
-                        <p className="text-gray-900 font-medium mb-1">
+                        <p className="text-gray-300 text-sm mb-1">
                           {info.content}
                         </p>
-                        <p className="text-gray-600 text-sm">{info.subtitle}</p>
+                        <p className="text-gray-500 text-xs">{info.subtitle}</p>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
 
             {/* Why Choose Us */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              className="bg-gradient-oet rounded-2xl p-8 text-white"
-            >
-              <h4 className="text-2xl font-bold mb-4">
-                {t("contact.whyUsTitle")}
-              </h4>
-              <div className="space-y-3">
-                {[
-                  t("contact.whyUs1"),
-                  t("contact.whyUs2"),
-                  t("contact.whyUs3"),
-                  t("contact.whyUs4"),
-                  t("contact.whyUs5"),
-                ].map((benefit, index) => (
-                  <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm opacity-90">{benefit}</span>
-                  </div>
-                ))}
+            <div className="contact-info-item glass-card p-6 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-onono-cyan-500/10 to-onono-green-500/10" />
+              <div className="relative z-10">
+                <h4 className="text-xl font-bold text-white mb-4 font-display">
+                  {t("contact.whyUsTitle")}
+                </h4>
+                <div className="space-y-3">
+                  {[
+                    t("contact.whyUs1"),
+                    t("contact.whyUs2"),
+                    t("contact.whyUs3"),
+                    t("contact.whyUs4"),
+                    t("contact.whyUs5"),
+                  ].map((benefit, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-onono-cyan-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-gray-300 text-sm">{benefit}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
 
           {/* Contact Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <div className="bg-gray-50 rounded-3xl p-8">
-              <div className="flex items-center space-x-3 mb-6">
-                <MessageCircle className="w-6 h-6 text-oet-green-600" />
-                <h3 className="text-2xl font-bold text-gray-900">
+          <div className="contact-form-col">
+            <div className="glass-card p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-onono-cyan-500 to-onono-electric-500 flex items-center justify-center">
+                  <MessageSquare className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white font-display">
                   {t("contact.formTitle")}
                 </h3>
               </div>
 
               {isSubmitted ? (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12"
-                >
-                  <CheckCircle className="w-16 h-16 text-oet-green-500 mx-auto mb-4" />
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-onono-cyan-500 to-onono-electric-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-8 h-8 text-white" />
+                  </div>
+                  <h4 className="text-2xl font-bold text-white mb-2">
                     {t("contact.formSuccessTitle")}
                   </h4>
-                  <p className="text-gray-600">
+                  <p className="text-gray-400">
                     {t("contact.formSuccessDescription")}
                   </p>
-                </motion.div>
+                </div>
               ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="contact-field">
                       <label
                         htmlFor="name"
-                        className="block text-sm font-semibold text-gray-900 mb-2"
+                        className="block text-sm font-medium text-gray-300 mb-2"
                       >
                         {t("contact.formName")} *
                       </label>
@@ -254,14 +316,14 @@ const ContactSection = () => {
                         value={formData.name}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
                         placeholder={t("contact.formNamePlaceholder")}
                       />
                     </div>
-                    <div>
+                    <div className="contact-field">
                       <label
                         htmlFor="email"
-                        className="block text-sm font-semibold text-gray-900 mb-2"
+                        className="block text-sm font-medium text-gray-300 mb-2"
                       >
                         {t("contact.formEmail")} *
                       </label>
@@ -272,17 +334,17 @@ const ContactSection = () => {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
                         placeholder={t("contact.formEmailPlaceholder")}
                       />
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
+                  <div className="grid md:grid-cols-2 gap-5">
+                    <div className="contact-field">
                       <label
                         htmlFor="company"
-                        className="block text-sm font-semibold text-gray-900 mb-2"
+                        className="block text-sm font-medium text-gray-300 mb-2"
                       >
                         {t("contact.formCompany")}
                       </label>
@@ -292,14 +354,14 @@ const ContactSection = () => {
                         name="company"
                         value={formData.company}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
                         placeholder={t("contact.formCompanyPlaceholder")}
                       />
                     </div>
-                    <div>
+                    <div className="contact-field">
                       <label
                         htmlFor="phone"
-                        className="block text-sm font-semibold text-gray-900 mb-2"
+                        className="block text-sm font-medium text-gray-300 mb-2"
                       >
                         {t("contact.formPhone")}
                       </label>
@@ -309,16 +371,16 @@ const ContactSection = () => {
                         name="phone"
                         value={formData.phone}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
                         placeholder={t("contact.formPhonePlaceholder")}
                       />
                     </div>
                   </div>
 
-                  <div>
+                  <div className="contact-field">
                     <label
                       htmlFor="service"
-                      className="block text-sm font-semibold text-gray-900 mb-2"
+                      className="block text-sm font-medium text-gray-300 mb-2"
                     >
                       {t("contact.formService")}
                     </label>
@@ -327,23 +389,27 @@ const ContactSection = () => {
                       name="service"
                       value={formData.service}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
                     >
-                      <option value="">
+                      <option value="" className="bg-onono-midnight-900">
                         {t("contact.formServicePlaceholder")}
                       </option>
                       {services.map((service, index) => (
-                        <option key={index} value={service}>
+                        <option
+                          key={index}
+                          value={service}
+                          className="bg-onono-midnight-900"
+                        >
                           {service}
                         </option>
                       ))}
                     </select>
                   </div>
 
-                  <div>
+                  <div className="contact-field">
                     <label
                       htmlFor="message"
-                      className="block text-sm font-semibold text-gray-900 mb-2"
+                      className="block text-sm font-medium text-gray-300 mb-2"
                     >
                       {t("contact.formMessage")} *
                     </label>
@@ -353,22 +419,26 @@ const ContactSection = () => {
                       value={formData.message}
                       onChange={handleInputChange}
                       required
-                      rows={6}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-oet-green-500 focus:border-transparent transition-all resize-none"
+                      rows={5}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all resize-none"
                       placeholder={t("contact.formMessagePlaceholder")}
                     />
                   </div>
 
-                  <motion.button
+                  {submitError && (
+                    <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                      {submitError}
+                    </p>
+                  )}
+
+                  <button
                     type="submit"
                     disabled={isSubmitting}
-                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
-                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                    className="w-full bg-gradient-oet text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="contact-field w-full btn-glow text-onono-midnight-900 font-bold py-4 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] transition-transform"
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-onono-midnight-900 border-t-transparent rounded-full animate-spin" />
                         <span>{t("contact.formSubmitting")}</span>
                       </>
                     ) : (
@@ -377,15 +447,15 @@ const ContactSection = () => {
                         <span>{t("contact.formSubmit")}</span>
                       </>
                     )}
-                  </motion.button>
+                  </button>
 
-                  <p className="text-sm text-gray-600 text-center">
+                  <p className="text-xs text-gray-500 text-center">
                     {t("contact.formAgreement")}
                   </p>
                 </form>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

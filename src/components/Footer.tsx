@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useRef } from "react";
 import {
   Mail,
   Phone,
@@ -12,10 +11,12 @@ import {
   Twitter,
   Instagram,
   ArrowUp,
-  Code,
+  Send,
   Heart,
+  Sparkles,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { gsap, useGSAP } from "@/lib/gsap";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -24,6 +25,24 @@ const Footer = () => {
   const [submitStatus, setSubmitStatus] = useState<
     "idle" | "success" | "error"
   >("idle");
+  const footerRef = useRef<HTMLElement>(null);
+
+  useGSAP(
+    () => {
+      gsap.from(footerRef.current, {
+        opacity: 0,
+        y: 40,
+        duration: 1,
+        ease: "power3.out",
+        immediateRender: false,
+        scrollTrigger: {
+          trigger: footerRef.current,
+          start: "top 90%",
+        },
+      });
+    },
+    { scope: footerRef }
+  );
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -37,17 +56,22 @@ const Footer = () => {
   };
 
   const footerLinks = {
-    resources: [
-      { name: t("footer.caseStudies"), href: "#projects" },
-      { name: t("footer.blog"), href: "#" },
-      { name: t("footer.documentation"), href: "#" },
-      { name: t("footer.support"), href: "#contact" },
+    services: [
+      { name: t("footer.aiIntegration"), href: "#services" },
+      { name: t("footer.softwareDev"), href: "#services" },
+      { name: t("footer.digitalTransformation"), href: "#services" },
+      { name: t("footer.dataAnalysis"), href: "#services" },
+    ],
+    company: [
+      { name: t("footer.aboutUs"), href: "#about" },
+      { name: t("footer.ourTeam"), href: "#team" },
+      { name: t("footer.careers"), href: "#" },
+      { name: t("footer.contact"), href: "#contact" },
     ],
     legal: [
       { name: t("footer.privacyPolicy"), href: "#" },
       { name: t("footer.termsOfService"), href: "#" },
       { name: t("footer.cookiePolicy"), href: "#" },
-      { name: t("footer.gdprCompliance"), href: "#" },
     ],
   };
 
@@ -56,34 +80,44 @@ const Footer = () => {
       name: "LinkedIn",
       icon: Linkedin,
       href: "#",
-      color: "hover:text-blue-600",
+      hoverColor: "hover:bg-blue-600",
     },
-    { name: "Github", icon: Github, href: "#", color: "hover:text-gray-900" },
+    {
+      name: "Github",
+      icon: Github,
+      href: "#",
+      hoverColor: "hover:bg-gray-700",
+    },
     {
       name: "Facebook",
       icon: Facebook,
       href: "#",
-      color: "hover:text-blue-600",
+      hoverColor: "hover:bg-blue-700",
     },
-    { name: "Twitter", icon: Twitter, href: "#", color: "hover:text-blue-400" },
+    {
+      name: "Twitter",
+      icon: Twitter,
+      href: "#",
+      hoverColor: "hover:bg-sky-500",
+    },
     {
       name: "Instagram",
       icon: Instagram,
       href: "#",
-      color: "hover:text-pink-600",
+      hoverColor: "hover:bg-pink-600",
     },
   ];
 
   const contactInfo = [
     {
       icon: Mail,
-      content: "customer@onono-technologies.com",
-      href: "mailto:customer@onono-technologies.com",
+      content: "administrative@onono-technologies.com",
+      href: "mailto:administrative@onono-technologies.com",
     },
     { icon: Phone, content: "+244 929 976 519", href: "tel:+244929976519" },
     {
       icon: MapPin,
-      content: "Rua Eduardo Mondlane Ingombotas Luanda Angola",
+      content: "Rua Eduardo Mondlane, Ingombotas, Luanda, Angola",
       href: "https://maps.google.com",
     },
   ];
@@ -100,24 +134,19 @@ const Footer = () => {
     setSubmitStatus("idle");
 
     try {
-      // Create mailto link to send email to customer@onono-technologies.com
-      const subject = encodeURIComponent("Nova Subscrição Newsletter");
+      const subject = encodeURIComponent("Nova Subscrição Newsletter - Onono");
       const body = encodeURIComponent(
         `Nova subscrição para a newsletter:\n\nEmail: ${email}\nData: ${new Date().toLocaleString(
           "pt-PT"
         )}\n\nPor favor, adicione este email à lista de newsletter.`
       );
 
-      const mailtoLink = `mailto:customer@onono-technologies.com?subject=${subject}&body=${body}`;
-
-      // Open email client
+      const mailtoLink = `mailto:administrative@onono-technologies.com?subject=${subject}&body=${body}`;
       window.location.href = mailtoLink;
 
-      // Show success message
       setSubmitStatus("success");
       setEmail("");
 
-      // Reset status after 3 seconds
       setTimeout(() => {
         setSubmitStatus("idle");
       }, 3000);
@@ -125,7 +154,6 @@ const Footer = () => {
       console.error("Error sending newsletter subscription:", error);
       setSubmitStatus("error");
 
-      // Reset error status after 3 seconds
       setTimeout(() => {
         setSubmitStatus("idle");
       }, 3000);
@@ -135,38 +163,102 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-gray-900 text-white relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-5">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='5' cy='5' r='5'/%3E%3Ccircle cx='55' cy='55' r='5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
+    <footer ref={footerRef} className="relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-onono-midnight-950 to-onono-midnight-900">
+        <div className="absolute inset-0 grid-pattern opacity-10" />
+        <div className="absolute bottom-0 left-1/4 w-[500px] h-[300px] bg-onono-cyan-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-0 right-1/4 w-[400px] h-[200px] bg-onono-green-500/5 rounded-full blur-[100px]" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Newsletter Section */}
+        <div className="py-16 border-b border-white/10">
+          <div className="glass-card p-8 md:p-12 relative overflow-hidden">
+            {/* Background Glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-onono-cyan-500/10 via-transparent to-onono-green-500/10" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-onono-cyan-500/20 rounded-full blur-[80px]" />
+
+            <div className="relative z-10 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card text-onono-cyan-400 text-sm font-medium mb-4">
+                <Sparkles className="w-4 h-4" />
+                {t("footer.newsletterBadge")}
+              </div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-3 font-display">
+                {t("footer.newsletterTitle")}
+              </h3>
+              <p className="text-gray-400 mb-8 max-w-xl mx-auto">
+                {t("footer.newsletterDescription")}
+              </p>
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              >
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t("footer.newsletterPlaceholder")}
+                  className="flex-1 px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-onono-cyan-500/50 focus:ring-1 focus:ring-onono-cyan-500/50 transition-all"
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 hover:scale-105 active:scale-95 ${
+                    submitStatus === "success"
+                      ? "bg-green-500 text-white"
+                      : submitStatus === "error"
+                      ? "bg-red-500 text-white"
+                      : "btn-glow text-onono-midnight-900"
+                  } ${isSubmitting ? "opacity-70 cursor-not-allowed hover:scale-100" : ""}`}
+                >
+                  {isSubmitting ? (
+                    "..."
+                  ) : submitStatus === "success" ? (
+                    "✓"
+                  ) : submitStatus === "error" ? (
+                    "!"
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      {t("footer.subscribe")}
+                    </>
+                  )}
+                </button>
+              </form>
+              {submitStatus === "success" && (
+                <p className="text-green-400 text-sm mt-3">
+                  {t("footer.subscribeSuccess")}
+                </p>
+              )}
+              {submitStatus === "error" && (
+                <p className="text-red-400 text-sm mt-3">
+                  {t("footer.subscribeError")}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Main Footer Content */}
         <div className="py-16">
           <div className="grid lg:grid-cols-5 gap-12">
             {/* Company Info */}
             <div className="lg:col-span-2">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                viewport={{ once: true }}
-              >
+              <div>
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold">
-                    <span className="text-oet-green-400">ONONO</span>
-                  </h3>
-                  <p className="text-xs text-gray-400 uppercase tracking-wider">
-                    {t("hero.subtitle")}
+                  <img
+                    src="/logo.png"
+                    alt="Onono Engenharia e Tecnologias"
+                    className="h-12 w-auto mb-2"
+                  />
+                  <p className="text-sm text-gray-500 uppercase tracking-wider">
+                    {t("footer.tagline")}
                   </p>
                 </div>
-                <p className="text-gray-300 leading-relaxed mb-6">
+                <p className="text-gray-400 leading-relaxed mb-6">
                   {t("footer.description")}
                 </p>
 
@@ -175,197 +267,125 @@ const Footer = () => {
                   {contactInfo.map((info, index) => {
                     const Icon = info.icon;
                     return (
-                      <motion.a
+                      <a
                         key={index}
                         href={info.href}
-                        whileHover={{ x: 5 }}
-                        className="flex items-center space-x-3 text-gray-300 hover:text-oet-green-400 transition-colors group"
+                        className="flex items-center gap-3 text-gray-400 hover:text-onono-cyan-400 hover:translate-x-1 transition-all group"
                       >
-                        <Icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-onono-cyan-500/20 transition-colors">
+                          <Icon className="w-4 h-4" />
+                        </div>
                         <span className="text-sm">{info.content}</span>
-                      </motion.a>
+                      </a>
                     );
                   })}
                 </div>
 
                 {/* Social Links */}
-                <div className="flex space-x-4">
+                <div className="flex gap-3">
                   {socialLinks.map((social, index) => {
                     const Icon = social.icon;
                     return (
-                      <motion.a
+                      <a
                         key={index}
                         href={social.href}
-                        whileHover={{ scale: 1.1, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center text-gray-400 ${social.color} transition-all hover:bg-gray-700`}
+                        className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 hover:text-white hover:scale-110 hover:-translate-y-0.5 active:scale-95 ${social.hoverColor} transition-all border border-white/5`}
                       >
                         <Icon className="w-5 h-5" />
-                      </motion.a>
+                      </a>
                     );
                   })}
                 </div>
-              </motion.div>
+              </div>
             </div>
 
             {/* Footer Links */}
             <div className="lg:col-span-3">
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Resources Links */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <h4 className="text-lg font-semibold mb-4 text-oet-blue-400">
-                    {t("footer.resources")}
+              <div className="grid md:grid-cols-3 gap-8">
+                {/* Services Links */}
+                <div>
+                  <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                    {t("footer.servicesTitle")}
                   </h4>
                   <ul className="space-y-3">
-                    {footerLinks.resources.map((link, index) => (
+                    {footerLinks.services.map((link, index) => (
                       <li key={index}>
-                        <motion.button
+                        <button
                           onClick={() => scrollToSection(link.href)}
-                          whileHover={{ x: 5 }}
-                          className="text-gray-300 hover:text-white transition-colors text-sm"
+                          className="text-gray-400 hover:text-onono-cyan-400 hover:translate-x-1 transition-all text-sm"
                         >
                           {link.name}
-                        </motion.button>
+                        </button>
                       </li>
                     ))}
                   </ul>
-                </motion.div>
+                </div>
+
+                {/* Company Links */}
+                <div>
+                  <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                    {t("footer.companyTitle")}
+                  </h4>
+                  <ul className="space-y-3">
+                    {footerLinks.company.map((link, index) => (
+                      <li key={index}>
+                        <button
+                          onClick={() => scrollToSection(link.href)}
+                          className="text-gray-400 hover:text-onono-cyan-400 hover:translate-x-1 transition-all text-sm"
+                        >
+                          {link.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 {/* Legal Links */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  viewport={{ once: true }}
-                >
-                  <h4 className="text-lg font-semibold mb-4 text-purple-400">
-                    {t("footer.legal")}
+                <div>
+                  <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+                    {t("footer.legalTitle")}
                   </h4>
                   <ul className="space-y-3">
                     {footerLinks.legal.map((link, index) => (
                       <li key={index}>
-                        <motion.a
+                        <a
                           href={link.href}
-                          whileHover={{ x: 5 }}
-                          className="text-gray-300 hover:text-white transition-colors text-sm"
+                          className="text-gray-400 hover:text-onono-cyan-400 hover:translate-x-1 transition-all text-sm inline-block"
                         >
                           {link.name}
-                        </motion.a>
+                        </a>
                       </li>
                     ))}
                   </ul>
-                </motion.div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Newsletter Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          className="border-t border-gray-800 py-8"
-        >
-          <div className="bg-gradient-oet rounded-2xl p-8 text-center">
-            <h3 className="text-2xl font-bold mb-2">
-              {t("footer.newsletterTitle")}
-            </h3>
-            <p className="text-white/80 mb-6">
-              {t("footer.newsletterDescription")}
-            </p>
-            <div className="max-w-md mx-auto">
-              <form
-                onSubmit={handleNewsletterSubmit}
-                className="flex flex-col sm:flex-row gap-3"
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t("footer.newsletterPlaceholder")}
-                  className="flex-1 px-4 py-3 rounded-lg bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  required
-                  disabled={isSubmitting}
-                />
-                <motion.button
-                  type="submit"
-                  whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
-                  whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
-                  disabled={isSubmitting}
-                  className={`px-6 py-3 rounded-lg font-semibold transition-all whitespace-nowrap ${
-                    submitStatus === "success"
-                      ? "bg-green-500 text-white"
-                      : submitStatus === "error"
-                      ? "bg-red-500 text-white"
-                      : "bg-white text-gray-900 hover:shadow-lg"
-                  } ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
-                >
-                  {isSubmitting
-                    ? "Enviando..."
-                    : submitStatus === "success"
-                    ? "Enviado!"
-                    : submitStatus === "error"
-                    ? "Erro"
-                    : t("footer.subscribe")}
-                </motion.button>
-              </form>
-              {submitStatus === "success" && (
-                <p className="text-white/80 text-sm mt-2 text-center">
-                  Email enviado! Verifique seu cliente de email.
-                </p>
-              )}
-              {submitStatus === "error" && (
-                <p className="text-red-200 text-sm mt-2 text-center">
-                  Por favor, insira um email válido.
-                </p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="flex items-center space-x-2 text-gray-400 text-sm mb-4 md:mb-0"
-            >
+        <div className="border-t border-white/10 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-2 text-gray-500 text-sm">
               <span>{t("footer.copyright")}</span>
-              <span>{t("footer.madeWith")}</span>
-              <Heart className="w-4 h-4 text-red-500" fill="currentColor" />
-              <span>{t("footer.in")}</span>
-            </motion.div>
+              <span className="flex items-center gap-1">
+                {t("footer.madeWith")}
+                <Heart className="w-4 h-4 text-red-500" fill="currentColor" />
+                {t("footer.inAngola")}
+              </span>
+            </div>
 
-            <div className="flex items-center space-x-6">
-              <motion.div
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                viewport={{ once: true }}
-                className="flex items-center space-x-2 text-gray-400 text-sm"
-              >
-                <Code className="w-4 h-4" />
-                <span>{t("footer.builtWith")}</span>
-              </motion.div>
+            <div className="flex items-center gap-6">
+              <div className="text-gray-500 text-sm">
+                {t("footer.builtWith")}
+              </div>
 
-              <motion.button
+              <button
                 onClick={scrollToTop}
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center hover:shadow-lg transition-all text-white"
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-onono-cyan-500 to-onono-electric-500 flex items-center justify-center hover:shadow-glow-cyan hover:scale-110 hover:-translate-y-0.5 active:scale-95 transition-all text-white"
               >
                 <ArrowUp className="w-5 h-5" />
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>
