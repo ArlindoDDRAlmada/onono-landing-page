@@ -11,6 +11,8 @@ import {
   Twitter,
   Instagram,
   ArrowUp,
+  ArrowRight,
+  Clock,
   Send,
   Heart,
   Sparkles,
@@ -358,6 +360,33 @@ const Footer = () => {
                     ))}
                   </ul>
                 </div>
+              </div>
+
+              {/* Hours + CTA — fills the space under the link columns */}
+              <div className="glass-card mt-10 p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-onono-cyan-500/20 to-onono-electric-500/20 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-onono-cyan-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-1">
+                      {t("contact.infoHoursTitle")}
+                    </h4>
+                    <p className="text-gray-400 text-sm">
+                      {t("contact.infoHoursContent")}
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      {t("contact.infoHoursSubtitle")}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => scrollToSection("#contact")}
+                  className="btn-glow text-onono-midnight-900 font-bold text-sm px-6 py-3 flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform shrink-0"
+                >
+                  {t("nav.getStarted")}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </div>

@@ -126,8 +126,10 @@ const Navigation = () => {
 
       {/* Mobile Menu */}
       <div
-        className={`md:hidden bg-onono-midnight-900/95 backdrop-blur-xl border-t border-white/10 overflow-hidden transition-all duration-300 ${
-          isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 border-t-0"
+        className={`md:hidden bg-onono-midnight-900/95 backdrop-blur-xl border-t border-white/10 transition-all duration-300 ${
+          isMobileMenuOpen
+            ? "max-h-[calc(100dvh-72px)] opacity-100 overflow-y-auto"
+            : "max-h-0 opacity-0 border-t-0 overflow-hidden"
         }`}
       >
         <div className="px-4 py-6 space-y-4">
