@@ -119,7 +119,7 @@ const Footer = () => {
     { icon: Phone, content: "+244 929 976 519", href: "tel:+244929976519" },
     {
       icon: MapPin,
-      content: "Rua Eduardo Mondlane, Ingombotas, Luanda, Angola",
+      content: "Rua Eduardo Mondlane, nº 25, Ingombotas, Luanda, Angola",
       href: "https://maps.google.com",
     },
   ];

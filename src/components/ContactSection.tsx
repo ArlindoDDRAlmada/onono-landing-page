@@ -105,7 +105,7 @@ const ContactSection = () => {
     {
       icon: MapPin,
       title: t("contact.infoLocationTitle"),
-      content: "Rua Eduardo Mondlane, Ingombotas, Luanda",
+      content: "Rua Eduardo Mondlane, nº 25, Ingombotas, Luanda",
       subtitle: t("contact.infoLocationSubtitle"),
       action: "https://maps.google.com",
     },
