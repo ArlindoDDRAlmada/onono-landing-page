@@ -313,7 +313,7 @@ i18n
                         titleHighlight: 'Padrões Globais',
                         description: 'A Onono é o parceiro tecnológico líder em Angola, combinando profundo conhecimento do mercado local com expertise técnica de classe mundial para entregar soluções digitais transformadoras.',
                         presenceTitle: 'O Seu Parceiro Tecnológico Estratégico',
-                        presenceDescription1: 'Baseados em Luanda, servimos clientes em todo o Angola com uma equipa que compreende tanto os desafios únicos como as imensas oportunidades do mercado angolano.',
+                        presenceDescription1: 'Baseados em Luanda, servimos clientes em toda Angola com uma equipa que compreende tanto os desafios únicos como as imensas oportunidades do mercado angolano.',
                         presenceDescription2: 'A nossa equipa multidisciplinar combina expertise técnica de nível de doutoramento com perspicácia empresarial prática, garantindo soluções que não só funcionam tecnicamente, mas entregam valor real ao negócio.',
                         missionTitle: 'A Nossa Missão',
                         missionDescription: 'Democratizar o acesso à tecnologia de ponta em Angola, capacitando empresas de todos os tamanhos a competir globalmente através de IA, software personalizado e insights baseados em dados.',
