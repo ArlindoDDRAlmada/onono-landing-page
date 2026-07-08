@@ -94,12 +94,6 @@ const Navigation = () => {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-onono-cyan-500 to-onono-electric-500 group-hover:w-full transition-all duration-300" />
               </button>
             ))}
-            <Link
-              href="/login"
-              className="text-gray-300 hover:text-white transition-all font-medium hover:scale-105 active:scale-95"
-            >
-              {t("auth.signIn")}
-            </Link>
             <button
               onClick={() => scrollToSection("#contact")}
               className="btn-glow text-onono-midnight-900 font-bold text-sm px-6 py-2.5 flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform"
@@ -143,13 +137,6 @@ const Navigation = () => {
               {item.name}
             </button>
           ))}
-          <Link
-            href="/login"
-            className="block w-full text-left text-gray-300 hover:text-onono-cyan-400 transition-colors font-medium py-3 border-b border-white/5 active:scale-95"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            {t("auth.signIn")}
-          </Link>
           <button
             onClick={() => scrollToSection("#contact")}
             className="w-full btn-glow text-onono-midnight-900 font-bold py-3 mt-4 flex items-center justify-center gap-2 active:scale-95 transition-transform"
