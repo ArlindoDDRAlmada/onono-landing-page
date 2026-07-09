@@ -8,6 +8,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from pydantic import BaseModel, EmailStr
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .db import User, get_db
@@ -104,7 +105,11 @@ def register(data: RegisterIn, db: Session = Depends(get_db)):
         role=role_for(data.email),
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Este email já está registado")
     db.refresh(user)
     return make_token(user)
 

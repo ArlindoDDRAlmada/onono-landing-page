@@ -2,32 +2,36 @@
 
 import React from "react";
 
-const searilizeError = (error: any) => {
-  if (error instanceof Error) {
-    return error.message + "\n" + error.stack;
-  }
-  return JSON.stringify(error, null, 2);
-};
-
 export class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: any }
+  { hasError: boolean }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, error };
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
+    console.error("ErrorBoundary caught:", error, info);
   }
 
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-4 border border-red-500 rounded">
-          <h2 className="text-red-500">Something went wrong.</h2>
-          <pre className="mt-2 text-sm">{searilizeError(this.state.error)}</pre>
+        <div className="min-h-screen flex items-center justify-center bg-onono-midnight-900 px-4">
+          <div className="glass-card p-8 max-w-md text-center">
+            <h2 className="text-xl font-bold text-white mb-2">
+              Algo correu mal.
+            </h2>
+            <p className="text-gray-400 text-sm">
+              Por favor recarregue a página. Se o problema persistir,
+              contacte-nos em administrative@onono-technologies.com.
+            </p>
+          </div>
         </div>
       );
     }

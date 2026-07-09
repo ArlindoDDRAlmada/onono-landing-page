@@ -120,7 +120,7 @@ const AuthForm = ({ mode }: { mode: "login" | "register" }) => {
             </button>
           </form>
 
-          <GoogleButton onSuccess={redirect} />
+          <GoogleButton onSuccess={redirect} onError={setError} />
 
           <p className="text-sm text-gray-400 text-center mt-6">
             {t(isLogin ? "auth.noAccount" : "auth.haveAccount")}{" "}

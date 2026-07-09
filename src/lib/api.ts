@@ -10,8 +10,12 @@ export function saveAuth({ access_token, user }: TokenOut) {
 
 export function getUser(): User | null {
   if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem("onono_user");
-  return raw ? (JSON.parse(raw) as User) : null;
+  try {
+    const raw = localStorage.getItem("onono_user");
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function clearAuth() {

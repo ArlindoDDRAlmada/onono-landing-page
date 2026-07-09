@@ -18,7 +18,7 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
   title: "Onono | AI & Digital Transformation",
   description:
-    "Leading AI & Digital Transformation consultancy in Angola. We transform ideas into measurable business results.",
+    "Consultoria líder em IA e Transformação Digital em Angola. Transformamos ideias em resultados de negócio mensuráveis.",
   icons: {
     icon: "/OnonoTech.png",
     shortcut: "/OnonoTech.png",
@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="pt"
       suppressHydrationWarning
       className={`${inter.variable} ${spaceGrotesk.variable} ${playfair.variable}`}
     >

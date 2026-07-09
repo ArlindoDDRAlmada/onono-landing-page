@@ -19,7 +19,13 @@ declare global {
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
 /** Botão "Entrar com Google" (Google Identity Services). Invisível se o Client ID não estiver configurado. */
-const GoogleButton = ({ onSuccess }: { onSuccess: (auth: TokenOut) => void }) => {
+const GoogleButton = ({
+  onSuccess,
+  onError,
+}: {
+  onSuccess: (auth: TokenOut) => void;
+  onError: (message: string) => void;
+}) => {
   const divRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,12 +36,16 @@ const GoogleButton = ({ onSuccess }: { onSuccess: (auth: TokenOut) => void }) =>
       window.google.accounts.id.initialize({
         client_id: CLIENT_ID,
         callback: async (response: { credential: string }) => {
-          const auth = await api<TokenOut>("/auth/google", {
-            method: "POST",
-            body: JSON.stringify({ credential: response.credential }),
-          });
-          saveAuth(auth);
-          onSuccess(auth);
+          try {
+            const auth = await api<TokenOut>("/auth/google", {
+              method: "POST",
+              body: JSON.stringify({ credential: response.credential }),
+            });
+            saveAuth(auth);
+            onSuccess(auth);
+          } catch (err) {
+            onError(err instanceof Error ? err.message : String(err));
+          }
         },
       });
       window.google.accounts.id.renderButton(divRef.current, {
@@ -54,7 +64,7 @@ const GoogleButton = ({ onSuccess }: { onSuccess: (auth: TokenOut) => void }) =>
       script.onload = render;
       document.head.appendChild(script);
     }
-  }, [onSuccess]);
+  }, [onSuccess, onError]);
 
   if (!CLIENT_ID) return null;
 

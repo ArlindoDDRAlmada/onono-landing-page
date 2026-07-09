@@ -55,10 +55,14 @@ export default function AdminPage() {
   }, [router, load]);
 
   const markRead = async (id: number) => {
-    const updated = await api<Message>(`/messages/${id}/read`, { method: "PATCH" });
-    setMessages((prev) =>
-      prev ? prev.map((m) => (m.id === id ? updated : m)) : prev
-    );
+    try {
+      const updated = await api<Message>(`/messages/${id}/read`, { method: "PATCH" });
+      setMessages((prev) =>
+        prev ? prev.map((m) => (m.id === id ? updated : m)) : prev
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
   };
 
   const logout = () => {

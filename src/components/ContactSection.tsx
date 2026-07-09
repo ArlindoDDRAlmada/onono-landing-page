@@ -107,7 +107,8 @@ const ContactSection = () => {
       title: t("contact.infoLocationTitle"),
       content: "Rua Eduardo Mondlane, nº 25, Ingombotas, Luanda",
       subtitle: t("contact.infoLocationSubtitle"),
-      action: "https://maps.google.com",
+      action:
+        "https://www.google.com/maps/search/?api=1&query=Rua+Eduardo+Mondlane+25,+Ingombotas,+Luanda",
     },
     {
       icon: Clock,
@@ -125,7 +126,7 @@ const ContactSection = () => {
     t("services.service4Title"),
     t("services.service5Title"),
     t("services.service6Title"),
-    "Other",
+    t("contact.serviceOther"),
   ];
 
   const handleInputChange = (
@@ -226,11 +227,13 @@ const ContactSection = () => {
                 const Icon = info.icon;
                 return (
                   <div key={index} className="contact-info-item group">
-                    <div
-                      className="glass-card-hover p-5 flex items-start gap-4 cursor-pointer"
-                      onClick={() =>
-                        info.action && window.open(info.action, "_blank")
-                      }
+                    <a
+                      href={info.action ?? undefined}
+                      target={info.action?.startsWith("http") ? "_blank" : undefined}
+                      rel={info.action?.startsWith("http") ? "noopener noreferrer" : undefined}
+                      className={`glass-card-hover p-5 flex items-start gap-4 ${
+                        info.action ? "cursor-pointer" : "cursor-default"
+                      }`}
                     >
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-onono-cyan-500/20 to-onono-electric-500/20 flex items-center justify-center group-hover:from-onono-cyan-500/30 group-hover:to-onono-electric-500/30 transition-all">
                         <Icon className="w-5 h-5 text-onono-cyan-400" />
@@ -244,7 +247,7 @@ const ContactSection = () => {
                         </p>
                         <p className="text-gray-500 text-xs">{info.subtitle}</p>
                       </div>
-                    </div>
+                    </a>
                   </div>
                 );
               })}
